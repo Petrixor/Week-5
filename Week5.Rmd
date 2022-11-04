@@ -16,4 +16,146 @@ library(tidyverse)
 library(MASS)
 library(rgl) 
 ```
+```{r}
+data("hills") # Loads the hills dataset into a variable "hills"
+nrow(hills)
+```
+
+```{r}
+hills_train <- hills[1:30,]
+hills_test <- hills[31:35,]
+```
+
+```{r}
+hills_train[1:10,]
+```
+
+```{r}
+summary(hills_train)
+```
+
+```{r}
+ggplot(data=hills_train,aes(x=dist, y=time)) + geom_point()
+```
+
+```{r}
+ggplot(data=hills_train, aes(x=climb, y=time)) + geom_point()
+```
+
+#### For dist
+```{r}
+cor.test(hills_train$dist, hills_train$time)
+```
+#### For Climb
+```{r}
+cor.test(hills_train$climb, hills_train$time)
+```
+
+```{r}
+mod_dist <- lm(formula=time~dist, data=hills_train)# predicting time using dist
+```
+
+```{r}
+summary(mod_dist)
+```
+
+```{r}
+coef(mod_dist)
+```
+
+```{r}
+mod_climb <- lm(formula=time~climb, data=hills_train)
+summary(mod_climb)
+coef(mod_climb)
+```
+
+
+```{r}
+coefs_dist <- coef(mod_dist)
+ggplot(data=hills_train, aes(x=dist, y=time)) + geom_point() + geom_abline(mapping=aes(slope=coefs_dist["dist"], intercept=coefs_dist["(Intercept)"]), color='cyan')
+```
+
+```{r}
+hills_resid <- hills_train # make a copy of the dataset, to leave the original untouched
+hills_resid$predicted <- predict(mod_dist) # if data are not specified, uses the data the model was fit to
+hills_resid$residuals <- residuals(mod_dist)# show the data with predicted and residual values
+hills_resid[1:10,]
+```
+
+```{r}
+ggplot(data=hills_resid, aes(x=dist,y=time)) +
+ geom_point(size=2) + # make the actual values show up more clearly
+ geom_point(size=2, aes(y=predicted), shape=3) + # show the predicted values
+ geom_segment(aes(xend=dist, yend=predicted), alpha=0.9, color='purple') +
+ geom_abline(mapping=aes(
+ slope=coefs_dist["dist"],
+ intercept=coefs_dist["(Intercept)"]
+ ), color='cyan')
+```
+
+```{r}
+plot(mod_dist, which = 1)
+```
+
+```{r}
+plot(mod_climb, which = 1)
+```
+
+```{r}
+predict(mod_dist, newdata=hills_test)
+```
+
+```{r}
+predict(mod_dist,newdata=hills_test, interval='confidence')
+```
+
+```{r}
+hills_dist_test <- hills_test # make a copy of the test data to leave the original unaltered
+hills_dist_test$predicted <- predict(mod_dist, newdata=hills_dist_test)
+hills_dist_test$residuals <- hills_dist_test$predicted - hills_dist_test$time
+hills_dist_test
+```
+
+```{r}
+ggplot(data=hills_dist_test, aes(x=dist,y=time)) +
+geom_point(size=3) + # make the actual values show up more clearly
+ geom_point(size=2, aes(y=predicted), shape=1) + # show the predicted values
+ geom_segment(aes(xend=dist, yend=predicted), alpha=0.9, color='red') +
+ geom_abline(mapping=aes(
+ slope=coefs_dist["dist"],
+ intercept=coefs_dist["(Intercept)"]
+ ), color='purple')
+```
+
+```{r}
+sse_dist <- sum(hills_dist_test$residuals**2)
+sse_dist
+```
+
+```{r}
+predict(mod_climb,newdata=hills_test, interval='confidence')
+hills_climb_test <- hills_test # make a copy of the test data to leave the original unaltered
+hills_climb_test$predicted <- predict(mod_climb, newdata=hills_climb_test)
+hills_climb_test$residuals <- hills_climb_test$predicted - hills_climb_test$time
+sse_climb <- sum(hills_climb_test$residuals**2)
+sse_climb
+```
+
+```{r}
+ggplot(data=hills_train, aes(x=dist, y=climb)) + geom_point()
+```
+
+```{r}
+cor.test(hills_train$dist, hills_train$climb)
+```
+
+```{r}
+library(rgl)
+plot3d(
+ x=hills_train$dist,
+ y=hills_train$climb,
+ z=hills_train$time
+)
+rglwidget() # this should open an interactive 3-d widget in the Viewer pane
+```
 
