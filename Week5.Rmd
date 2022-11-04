@@ -177,6 +177,106 @@ rglwidget()
 ```
 
 ```{r}
+data("iris") 
+```
 
+```{r}
+iris <- iris[sample(1:nrow(iris)),]
+train_size = 0.7 # using 70% of data for training
+iris_train <- iris[1:(train_size*nrow(iris)),]
+iris_test <- iris[(nrow(iris_train)+1):nrow(iris),]
+head(iris_train)
+```
+
+```{r}
+colors <- c('#1b9e77', '#d95f02', '#7570b3') # colors chosen to be visually unambiguous: see https://colorbrewer2.org/
+iris_train_colors <- colors[as.numeric(iris_train$Species)]
+shapes <- c('o', '+', 'x')
+iris_train_shapes <- shapes[as.numeric(iris_train$Species)]
+ggplot(
+ data=iris_train,
+ aes(x=Sepal.Length, y=Sepal.Width)
+) + geom_point(color=iris_train_colors, shape=iris_train_shapes, size=5)
+```
+
+```{r}
+binaryColors <- function(data, species) {
+ tf_values <- data$Species == species
+ color_indices <- as.numeric(tf_values)+1
+ return(colors[color_indices])
+}
+binaryShapes <- function(data, species) {
+ tf_values <- data$Species == species
+  shape_indices <- as.numeric(tf_values)+1
+ return(shapes[shape_indices])
+}
+```
+
+```{r}
+binarySpecies = 'virginica'
+ggplot(
+ data=iris_train,
+ aes(x=Sepal.Length, y=Sepal.Width)
+) + geom_point(
+ color=binaryColors(iris_train, binarySpecies),
+ shape=binaryShapes(iris_train, binarySpecies),
+ size=5
+)
+```
+
+```{r}
+ binarySpecies = 'virginica'
+ggplot(
+ data=iris_train,
+  aes(x=Petal.Length, y=Petal.Width)
+) + geom_point(
+ color=binaryColors(iris_train, binarySpecies),
+ shape=binaryShapes(iris_train, binarySpecies),
+ size=5
+)
+```
+
+```{r}
+iris_train$binarySpecies <- iris_train$Species == 'virginica'
+iris_train$binarySpecies <- iris_train$binarySpecies * 1 # convert from TRUE/FALSE to 1/0
+iris_train[1:10,] # examine the data to make sure the binary Species label was set correctly
+```
+
+```{r, results='hide', warning=FALSE}
+iris_binary_model <- glm(
+ binarySpecies ~ Petal.Width+Petal.Length, # predicting the binarySpecies label using petal length/width
+ family=binomial(link='logit'), # use a logistic regression
+ data=iris_train
+)
+```
+
+```{r}
+binomial_probabilities <- predict(
+ iris_binary_model,
+ newdata=iris_test,
+ type='response'
+)
+print(binomial_probabilities)
+```
+
+```{r}
+binomial_predictions <- ifelse(
+ binomial_probabilities>0.5,
+ 1,
+ 0
+)
+print(binomial_predictions)
+```
+
+```{r}
+iris_test$binarySpecies <- iris_test$Species == 'virginica'
+iris_test$binarySpecies <- iris_test$binarySpecies * 1 # convert from TRUE/FALSE to 1/0
+```
+
+```{r}
+binomial_classification_error <- mean(
+ binomial_predictions != iris_test$binarySpecies
+)
+print(paste('Accuracy',1-binomial_classification_error))
 ```
 
