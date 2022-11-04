@@ -1,0 +1,19 @@
+---
+title: "Week 5"
+author: "Yuqi Gao"
+date: "2022-11-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+#install.packages("MASS")
+#install.packages("rgl")
+library(tidyverse)
+library(MASS)
+library(rgl) 
+```
+
