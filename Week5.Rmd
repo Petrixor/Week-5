@@ -159,3 +159,24 @@ plot3d(
 rglwidget() # this should open an interactive 3-d widget in the Viewer pane
 ```
 
+```{r}
+mod_hills <- lm(formula=time~climb+dist, data=hills_train)
+```
+
+```{r}
+ plot3d(
+ x=hills_train$dist,
+ y=hills_train$climb,
+ z=hills_train$time,
+ type='s', size=2, col='red' # show the data points as big blue spheres for visibility
+ )
+coefs <- coef(mod_hills)
+planes3d(a=coefs["dist"],b=coefs["climb"],c=-1,d=coefs["(Intercept)"], col='cyan', alpha=0.5)
+# this uses the model coefficients to plot the regression plane in 3-d space
+rglwidget()
+```
+
+```{r}
+
+```
+
